@@ -1,0 +1,53 @@
+version: '3'
+services:
+  # Define images and version to use  hub.docker.com
+  postgres:
+    image: 'postgres:latest' 
+  redis:
+    image: 'redis:latest'                                         
+  nginx:
+    depends_on:
+      - api
+      - client
+    restart: always
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - '3050:80'
+  # Define server configurations build, volumes and env variables.
+  api:
+    depends_on:
+      - postgres
+    build:
+      dockerfile: Dockerfile.dev # Filename
+      context: ./server  # File path
+    volumes:
+      - /app/node_modules # Do not touch this folder
+      - ./server:/app #Copy server files to /app
+    # Define enviroment variables to be used by containers/keys files
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=""
+      - PGPORT=5432
+  client:
+    build:
+      dockerfile: Dockerfile.dev # Filename
+      context: ./client  # File path
+    volumes:
+      - /app/node_modules # Do not touch this folder
+      - ./client:/app #Copy server files to /app
+  worker:
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    build:
+      dockerfile: Dockerfile.dev # Filename
+      context: ./worker  # File path   
+    volumes:
+      - /app/node_modules # Do not touch this folder
+      - ./worker:/app #Copy server files to /app         
