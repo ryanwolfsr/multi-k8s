@@ -1,0 +1,19 @@
+apiVersion: apps/v1                          # Each API version defines a different set of 'objects' we can use 
+kind: Deployment                             # Type of Object we're creating (i.e. StatefulSet, ReplicaController, Pod, Service)
+metadata:                               
+  name: client-deployment                    # Name of the deployment
+spec:
+  replicas: 3                                # How many Pods to run
+  selector:
+    matchLabels:
+      component: web                         # Which template to use for these pods (Listed below)
+  template:                                  # Configuration to be used by all PODS in this deployment
+    metadata:
+      labels:
+         component: web                      # Label of pod
+    spec:
+      containers:                            # List of container(s) to include on pod
+        - name: client                       # Human readable logging 
+          image: ryanwolfsr/multi-client     # Name of the image on docker.hub to make this container from
+          ports:
+            - containerPort: 3000            # Works with a Service Object to exposes this port to the outside world

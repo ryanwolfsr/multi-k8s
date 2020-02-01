@@ -1,0 +1,31 @@
+apiVersion: apps/v1                          # Each API version defines a different set of 'objects' we can use 
+kind: Deployment                             # Type of Object we're creating (i.e. StatefulSet, ReplicaController, Pod, Service)
+metadata:                               
+  name: server-deployment                    # Name of the deployment
+spec:
+  replicas: 3                                # How many Pods to run
+  selector:
+    matchLabels:
+      component: server                      # Which template to use for these pods (Listed below)
+  template:                                  # Configuration to be used by all PODS in this deployment
+    metadata:
+      labels:
+         component: server                   # Label of pod
+    spec:
+      containers:                            # List of container(s) to include on pod
+        - name: server                       # Human readable logging 
+          image: ryanwolfsr/multi-server     # Name of the image on docker.hub to make this container from
+          ports:
+            - containerPort: 5000            # Works with a Service Object to exposes this port to the outside world
+--- # Used to separate files
+apiVersion: v1                          # Each API version defines a different set of 'objects' we can use                   
+kind: Service                           # Type of Object we're creating (i.e. StatefulSet, ReplicaController, Pod, Service)  
+metadata:
+  name: server-clusterip-service
+spec:
+  type: ClusterIP                       # Types of services: ClusterIP, NodePort, LoadBalancer, Ingress
+  ports:                                # <port>:<targetPort>
+    - port: 5000                        # Port that another POD/Container use to access client pod
+      targetPort: 5000                  # Target port is the port inside the POD to open traffic 
+  selector:
+    component: server                   # Label selector system, associates the service with the Pods that have metadata > labels to this component

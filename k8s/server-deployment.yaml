@@ -1,0 +1,37 @@
+apiVersion: apps/v1                          # Each API version defines a different set of 'objects' we can use 
+kind: Deployment                             # Type of Object we're creating (i.e. StatefulSet, ReplicaController, Pod, Service)
+metadata:                               
+  name: server-deployment                    # Name of the deployment
+spec:
+  replicas: 3                                # How many Pods to run
+  selector:
+    matchLabels:
+      component: server                      # Which template to use for these pods (Listed below)
+  template:                                  # Configuration to be used by all PODS in this deployment
+    metadata:
+      labels:
+         component: server                   # Label of pod
+    spec:
+      containers:                            # List of container(s) to include on pod
+        - name: server                       # Human readable logging 
+          image: ryanwolfsr/multi-server     # Name of the image on docker.hub to make this container from
+          ports:
+            - containerPort: 5000            # Works with a Service Object to exposes this port to the outside world
+          env:
+            - name: REDIS_HOST
+              value: redis-clusterip-service
+            - name: REDIS_PORT
+              value: '6379'
+            - name: PGHOST
+              value: postgres-clusterip-service
+            - name: PGPORT
+              value: '5432'
+            - name: PGDATABASE
+              value: postgres
+            - name: PGUSER 
+              value: postgres 
+            - name: PGPASSWORD               # Must match multi-server files  
+              valueFrom: 
+                secretKeyRef:
+                  name: pgpassword           # Must match kubectl get secrets
+                  key: PGPASSWORD            # Must match key used in kubectl secrets command                            
